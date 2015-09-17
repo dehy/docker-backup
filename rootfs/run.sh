@@ -36,7 +36,7 @@ fi
 
 docker_engine_version=$(eval $DOCKER_GET:/version | underscore select ".Version" --outfmt text)
 docker_engine_package_version=$(apt-cache showpkg docker-engine | grep ${docker_engine_version} | tail -n 1 | awk '{ print $1 }')
-apt-get install -y docker-engine=${docker_engine_package_version}
+apt-get install -y --force-yes docker-engine=${docker_engine_package_version}
 
 for volume_to_backup in $@
 do
