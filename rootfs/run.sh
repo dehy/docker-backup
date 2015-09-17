@@ -44,6 +44,16 @@ do
     container_name=${backup_data[0]}
     container_volume=${backup_data[1]}
 
+    if ${ON_TUTUM} then
+        container_id=$(docker ps | grep  myradio-backend-data | awk '{ print $1 }')
+        if [ $(echo ${container_id | wc -l }) -gt 1 ]; then
+            echo "!! More than on container with this name!"
+            exit 1
+        fi
+        tmp=$(docker inspect $container_id | underscore select ".Name" --outfmt text)
+        container_name=${tmp#/}
+    fi
+
     # TODO : Tester si le volume est bien exporté depuis le container
 
     if [ "$BACKUP_METHOD" == "ftp" ]
@@ -55,6 +65,8 @@ do
     then
         env_opts="-e \"AWS_ACCESS_KEY_ID=${BACKUP_S3_ACCESS_KEY_ID}\" -e \"AWS_SECRET_ACCESS_KEY=${BACKUP_S3_SECRET_ACCESS_KEY}\""
     fi
+
+    env_opts="${$env_opts} -e ON_TUTUM=${ON_TUTUM}"
 
     eval docker run --rm --volumes-from ${container_name} \
         -e "BACKUP_METHOD=${BACKUP_METHOD}" \
