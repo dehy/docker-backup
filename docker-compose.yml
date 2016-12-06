@@ -1,0 +1,43 @@
+version: '2'
+services:
+    backup:
+        build: .
+        volumes:
+            - ./docker/image_setup/docker-backup-entrypoint.sh:/docker-backup-entrypoint.sh:ro
+            - ./app:/docker-backup-app:ro
+            - ./docker/image_setup/etc/cron.d/docker-backup:/etc/cron.d/docker-backup:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+            - CONFIG_DESTINATIONS_LOCAL_FTP_PASSWORD=test_password
+            - CONFIG_SOURCES_TEST_MYSQL_USERNAME=mysql_user
+            - CONFIG_SOURCES_TEST_MYSQL_PASSWORD=mysql_pass
+        # command: worker test_mysql
+        command: force
+        # command: debug
+        networks:
+            - ftp
+    test_mysql:
+        image: mysql:latest
+        environment:
+            - MYSQL_RANDOM_ROOT_PASSWORD=true
+            - MYSQL_USER=mysql_user
+            - MYSQL_PASSWORD=mysql_pass
+            - MYSQL_DATABASE=test_database
+    test_data:
+        image: busybox:latest
+        command: tail -f /dev/null
+        volumes:
+            - /data
+    ftp_server:
+        image: akerbis/ftp:latest
+        environment:
+            - FTP_USER=test_user
+            - FTP_PASS=test_pass
+        ports:
+            - "21:21"
+            - "65000-65100:65000-65100"
+        networks:
+            - ftp
+networks:
+    ftp:
+        driver: bridge

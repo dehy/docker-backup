@@ -1,0 +1,59 @@
+destinations:
+    local_ftp: # an id used by sources
+        type: ftp
+        # server: backups.my-company.org # ip or fqdn
+        # container: dockerbackup_ftp_server_1
+        compose:
+            project: dockerbackup
+            service: ftp_server
+            container_number: 1
+        # dockercloud:
+        #     stack: backup
+        #     service: ftp-server
+        #     container_number: 1
+        # port: 21
+        username: test_user
+        # password: test_password
+        path: /
+    s3: # id used by sources
+        type: s3
+        region: eu-central-1
+        bucket_name: my_corporate_bucket
+        access_key_id: ACCESS_KEY
+        secret_access_key: SECRET_KEY
+
+sources:
+    test_mysql: # a self-explanatory id
+        type: mysqldump
+        # container: dockerbackup_test_mysql_1
+        compose:
+            project:            dockerbackup
+            service:            test_mysql
+            container_number:   1
+        # dockercloud:
+        #     stack:              test_stack
+        #     service:            test_mysql
+        #     container_number:   1
+        # username: mysql_user
+        # password: mysql_pass
+        databases:
+            - test_database
+        destination: local_ftp # id from destinations
+    test_fs:
+        type: fs
+        container: dockerbackup_test_data_1
+        # compose:
+        #     project:            dockerbackup
+        #     service:            test_data
+        #     container_number:   1
+        # dockercloud:
+        #     stack:              test_stack
+        #     service:            test_data
+        #     container_number:   1
+        volumes:
+            - /data
+        destination: local_ftp
+
+parameters:
+    backup_full_if_older_than: 7D
+    backup_keep_n_full: 5
