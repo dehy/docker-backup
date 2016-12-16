@@ -8,7 +8,8 @@ check_vitals
 
 install_docker
 
-THIS_DOCKER_IMAGE="$(docker inspect $(hostname) | $BIN_UNDERSCORE extract 0.Config.Image --outfmt text)"
+THIS_CONTAINER_ID="$(cat /proc/self/cgroup | grep 'docker/' | sed 's/^.*\///' | tail -n1)"
+THIS_DOCKER_IMAGE="$(docker inspect ${THIS_CONTAINER_ID} | $BIN_UNDERSCORE extract 0.Config.Image --outfmt text)"
 # TODO find the image tag
 
 destinations=$(cat ${CONFIG_FILE} | $BIN_SHYAML keys destinations)
