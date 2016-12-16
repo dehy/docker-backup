@@ -11,6 +11,7 @@ source=$1
 type=$(get_source_parameter $source type)
 source_container_id=$(get_container_id_from_config source $source)
 source_container_name=$(docker_get_container_name_from_id $source_container_id)
+destination_directory_name=$(get_source_parameter $source name "${source_container_name}")
 
 declare -a volumes_to_backup
 
@@ -31,9 +32,9 @@ if [ "$type" == "mysqldump" ]; then
         databases_opt="--databases $(echo $databases | tr '\0' ' ')"
     fi
 
-    tmp_dir="/tmp/mysql_backup_${source_container_name}"
+    tmp_dir="/tmp/mysqldump_${destination_directory_name}"
     mkdir -p "${tmp_dir}"
-    tmp_file="${tmp_dir}/mysql_backup_${source_container_name}_$(date +"%Y%m%d%H%M").sql"
+    tmp_file="${tmp_dir}/mysqldump_${destination_directory_name}_$(date +"%Y%m%d%H%M").sql"
     # TODO better security -> write ~/.my.cnf with [mysqldump]\nuser=user\npassword=secret and delete it afterwards
     eval docker exec -i ${source_container_id} mysqldump -u${username} -p${password} ${databases_opt} > ${tmp_file}
 
@@ -64,7 +65,7 @@ then
     port=$(get_destination_parameter $destination port 21)
     username=$(get_destination_parameter $destination username)
     path=$(get_destination_parameter $destination path /)
-    BACKUP_URL="par2+ftp://${username}@${server}:${port}${path}${source_container_name}"
+    BACKUP_URL="par2+ftp://${username}@${server}:${port}${path}${destination_directory_name}"
     ENV_FTP_PASSWORD=$(get_config_env_var destinations $destination password)
     if [ -n "${ENV_FTP_PASSWORD}" ]; then
         export FTP_PASSWORD=${ENV_FTP_PASSWORD}
@@ -85,7 +86,7 @@ then
     export AWS_SECRET_ACCESS_KEY=$(get_destination_parameter $destination secret_access_key)
     AWS_REGION=$(get_destination_parameter $destination region)
     AWS_BUCKET_NAME=$(get_destination_parameter $destination bucket_name)
-    BACKUP_URL="par2+s3://s3.${AWS_REGION}.amazonaws.com/${AWS_BUCKET_NAME}/${source_container_name}"
+    BACKUP_URL="par2+s3://s3.${AWS_REGION}.amazonaws.com/${AWS_BUCKET_NAME}/${destination_directory_name}"
     for volume_to_backup in "${volumes_to_backup[@]}"
     do
         duplicity --full-if-older-than "$(get_parameter backup_full_if_older_than)" \

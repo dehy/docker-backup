@@ -39,6 +39,7 @@ sources:
         databases:
             - test_database
         destination: local_ftp # id from destinations
+        name: dockerbackup_test_mysql
     test_fs:
         type: fs
         container: dockerbackup_test_data_1
@@ -53,6 +54,7 @@ sources:
         volumes:
             - /data
         destination: local_ftp
+        name: dockerbackup_test_fs
 
 parameters:
     backup_full_if_older_than: 7D
