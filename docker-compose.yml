@@ -1,11 +1,15 @@
 version: '2'
 services:
+    # backup-config:
+    #     build:
+    #         context: .
+    #         dockerfile: Dockerfile.config
     backup:
         build: .
         volumes:
             - ./docker/image_setup/docker-backup-entrypoint.sh:/docker-backup-entrypoint.sh:ro
             - ./app:/docker-backup-app:ro
-            # - ./app/config.yml:/etc/docker-backup/docker-backup.yml:ro
+            - ./app/config.yml.dist:/etc/docker-backup/docker-backup.yml:ro
             - ./docker/image_setup/etc/cron.d/docker-backup:/etc/cron.d/docker-backup:ro
             - /var/run/docker.sock:/var/run/docker.sock
         environment:
@@ -17,6 +21,8 @@ services:
         # command: debug
         networks:
             - ftp
+        # volumes_from:
+        #     - backup-config
     test_mysql:
         image: mysql:latest
         environment:

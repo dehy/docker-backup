@@ -42,20 +42,39 @@ do
         fi
     fi
 
-    # If the config file is mounted from host, find the host path
-    config_file_mounted_hostpath=$(docker inspect $(hostname) | $BIN_UNDERSCORE extract 0.HostConfig.Binds --outfmt text | grep -E ":$(dirname ${CONFIG_FILE})(/$(basename ${CONFIG_FILE}))?:" | cut -d":" -f 1)
+    # If the config file is mounted from host or other container, find the way to get it to workers containers
     config_file_volume_opts=""
-    if [ -n "$config_file_mounted_hostpath" ]; then
-        if [ "$(basename ${config_file_mounted_hostpath})" != "$(basename ${CONFIG_FILE})" ]; then
-            config_file_hostpath="${config_file_mounted_hostpath}/$(basename ${CONFIG_FILE})"
-        else
-            config_file_hostpath="${config_file_mounted_hostpath}"
-        fi
+
+    config_file_hostpath=$(docker inspect ${THIS_CONTAINER_ID} | $BIN_UNDERSCORE extract 0.HostConfig.Binds --outfmt text | grep -E ":${CONFIG_FILE}:" | cut -d":" -f 1)
+    if [ -n "${config_file_hostpath}" ]; then
         config_file_volume_opts="-v ${config_file_hostpath}:${CONFIG_FILE}:ro"
     fi
+    if [ -z "${config_file_hostpath}" ]; then
+        # find if mounted from other container
+        mount_points="$(docker inspect ${THIS_CONTAINER_ID} | $BIN_UNDERSCORE extract 0.Mounts)"
+        mount_points_count=$(echo "${mount_points}" | underscore process 'data.length')
+        i="0"
+        while [ $i -lt $mount_points_count ];
+        do
+            tmp_destination=$(echo "${mount_points}" | $BIN_UNDERSCORE extract "$i.Destination" --outfmt text)
+            if [ "$tmp_destination" == "$(dirname ${CONFIG_FILE})" ]; then
+                config_file_hostpath=$(echo "${mount_points}" | $BIN_UNDERSCORE extract "$i.Source" --outfmt text);
+                break
+            fi
+            unset tmp_destination
+            i=$[$i+1]
+        done
+        unset i mount_points mount_points_count tmp_destination
 
-    ENV_VARIABLES=$(env | grep "^CONFIG_")
+        if [ -n "$config_file_hostpath" ]; then
+            config_file_volume_opts="-v ${config_file_hostpath}:$(dirname ${CONFIG_FILE}):ro"
+        fi
+    fi
+    unset config_file_hostpath
+
+    # Give the worker container the variables that override config file
     environment_opts=""
+    ENV_VARIABLES=$(env | grep "^CONFIG_")
     for config_var in ${ENV_VARIABLES}
     do
         environment_opts="${environment_opts} -e ${config_var}"
