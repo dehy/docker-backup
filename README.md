@@ -55,14 +55,14 @@ You need to pass the docker socket and your custom configuration file as volumes
 By default, the container launch a cron process with a daily trigger of the script.
 
     docker run -d \
-        -v /host/path/to/config.yml:/app/config.yml \
+        -v /host/path/to/config.yml:/etc/docker-backup/docker-backup.yml \
         -v /var/run/docker.sock:/var/run/docker.sock \
         akerbis/docker-backup
 
 You can force a backup with the `force` command:
 
     docker run \
-        -v /host/path/to/config.yml:/app/config.yml \
+        -v /host/path/to/config.yml:/etc/docker-backup/docker-backup.yml \
         -v /var/run/docker.sock:/var/run/docker.sock \
         akerbis/docker-backup force
 

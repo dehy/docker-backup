@@ -5,6 +5,7 @@ services:
         volumes:
             - ./docker/image_setup/docker-backup-entrypoint.sh:/docker-backup-entrypoint.sh:ro
             - ./app:/docker-backup-app:ro
+            # - ./app/config.yml:/etc/docker-backup/docker-backup.yml:ro
             - ./docker/image_setup/etc/cron.d/docker-backup:/etc/cron.d/docker-backup:ro
             - /var/run/docker.sock:/var/run/docker.sock
         environment:

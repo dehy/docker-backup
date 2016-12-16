@@ -5,7 +5,7 @@ set -eux
 BIN_UNDERSCORE=/usr/local/bin/underscore
 BIN_SHYAML=/usr/local/bin/shyaml
 
-CONFIG_FILE="/docker-backup-app/config.yml"
+CONFIG_FILE="/etc/docker-backup/docker-backup.yml"
 
 DOCKER_SOCKET="/var/run/docker.sock"
 DOCKER_GET="curl -XGET -H 'Accept: application/json' --unix-socket ${DOCKER_SOCKET} http://localhost"
@@ -14,7 +14,7 @@ DOCKER_POST="curl -XPOST -H 'Accept: application/json|Content-type: application/
 function check_vitals {
     # TODO: check if config file is present and readable
     # check if /var/run/docker.sock is present and readable
-    # Advanced: check config.yml validity
+    # Advanced: check docker-backup.yml validity
     echo ""
 }
 
