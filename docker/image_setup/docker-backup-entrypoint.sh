@@ -13,6 +13,8 @@ if [ ! -f '/etc/docker-backup/docker-backup.yml' ]; then
     cp /docker-backup-app/config.yml /etc/docker-backup/docker-backup.yml
 fi
 
+export -p | grep 'CONFIG_' > /docker-backup-environment.sh
+
 if [ "$ACTION" == "bash" ]
 then
     exec /bin/bash

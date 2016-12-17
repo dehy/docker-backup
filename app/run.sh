@@ -9,7 +9,7 @@ check_vitals
 install_docker
 
 THIS_CONTAINER_ID="$(cat /proc/self/cgroup | grep 'docker/' | sed 's/^.*\///' | tail -n1)"
-THIS_DOCKER_IMAGE="$(docker inspect ${THIS_CONTAINER_ID} | $BIN_UNDERSCORE extract 0.Config.Image --outfmt text)"
+THIS_DOCKER_IMAGE="$(docker inspect ${THIS_CONTAINER_ID} | underscore extract 0.Config.Image --outfmt text)"
 # TODO find the image tag
 
 destinations=$(cat ${CONFIG_FILE} | $BIN_SHYAML keys destinations)
@@ -45,20 +45,20 @@ do
     # If the config file is mounted from host or other container, find the way to get it to workers containers
     config_file_volume_opts=""
 
-    config_file_hostpath=$(docker inspect ${THIS_CONTAINER_ID} | $BIN_UNDERSCORE extract 0.HostConfig.Binds --outfmt text | grep -E ":${CONFIG_FILE}:" | cut -d":" -f 1)
+    config_file_hostpath=$(docker inspect ${THIS_CONTAINER_ID} | underscore extract 0.HostConfig.Binds --outfmt text | grep -E ":${CONFIG_FILE}:" | cut -d":" -f 1)
     if [ -n "${config_file_hostpath}" ]; then
         config_file_volume_opts="-v ${config_file_hostpath}:${CONFIG_FILE}:ro"
     fi
     if [ -z "${config_file_hostpath}" ]; then
         # find if mounted from other container
-        mount_points="$(docker inspect ${THIS_CONTAINER_ID} | $BIN_UNDERSCORE extract 0.Mounts)"
+        mount_points="$(docker inspect ${THIS_CONTAINER_ID} | underscore extract 0.Mounts)"
         mount_points_count=$(echo "${mount_points}" | underscore process 'data.length')
         i="0"
         while [ $i -lt $mount_points_count ];
         do
-            tmp_destination=$(echo "${mount_points}" | $BIN_UNDERSCORE extract "$i.Destination" --outfmt text)
+            tmp_destination=$(echo "${mount_points}" | underscore extract "$i.Destination" --outfmt text)
             if [ "$tmp_destination" == "$(dirname ${CONFIG_FILE})" ]; then
-                config_file_hostpath=$(echo "${mount_points}" | $BIN_UNDERSCORE extract "$i.Source" --outfmt text);
+                config_file_hostpath=$(echo "${mount_points}" | underscore extract "$i.Source" --outfmt text);
                 break
             fi
             unset tmp_destination
