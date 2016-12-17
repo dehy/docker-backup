@@ -1,5 +1,7 @@
 # akerbis/docker-backup
 
+[![](https://images.microbadger.com/badges/image/akerbis/docker-backup.svg)](https://microbadger.com/images/akerbis/docker-backup "Get your own image badge on microbadger.com") [![](https://images.microbadger.com/badges/version/akerbis/docker-backup.svg)](https://microbadger.com/images/akerbis/docker-backup "Get your own version badge on microbadger.com")
+
 Docker image for backuping data and mysql containers, using [duplicity](http://duplicity.nongnu.org/index.html) at its core.
 
 ## Warning
