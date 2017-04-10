@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DUPLICITY_VERSION="0.7.10"
+DUPLICITY_VERSION="0.7.12"
 
 SCRIPT_DIR="$(dirname $0)"
 
