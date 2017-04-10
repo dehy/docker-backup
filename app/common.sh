@@ -105,7 +105,7 @@ function get_source_parameter {
 }
 
 function get_config_env_var {
-    local VAR_PARTS=$(echo $@ | tr '[:lower:]' '[:upper:]')
+    local VAR_PARTS=$(echo $@ | tr '[:lower:]' '[:upper:]' | sed -e 's/[^A-Z_]/_/g')
     VAR_NAME=$(join_by _ CONFIG $VAR_PARTS)
     echo "${!VAR_NAME:-}"
 }

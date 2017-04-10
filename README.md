@@ -68,6 +68,20 @@ You can force a backup with the `force` command:
         -v /var/run/docker.sock:/var/run/docker.sock \
         akerbis/docker-backup force
 
+### Override config parameters with env variables
+
+You may need to provide parameters such as credentials as external values from
+the configuration. You can provides such information through environment variables
+formatted with this rule :
+  - Start with `CONFIG_`
+  - Concatenate the path from configuration with underscores `_`
+  - Make it uppercase
+  - Replace any non-alpha and underscore character with underscore.
+
+ie. if I want to provides the secret access key of the destination "s3" from the
+`app/config.yml.dist` provided, I simply follow the path `destinations` > `s3` > `secret_access_key`.
+The environment variable is then called `CONFIG_DESTINATIONS_S3_SECRET_ACCESS_KEY`.
+
 ## Restore
 
 Restoring a backup is easy: use the `restore [container ...]` command. This will

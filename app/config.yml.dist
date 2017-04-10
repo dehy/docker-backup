@@ -1,5 +1,5 @@
 destinations:
-    local_ftp: # an id used by sources
+    local-ftp: # an id used by sources
         type: ftp
         # server: backups.my-company.org # ip or fqdn
         # container: dockerbackup_ftp_server_1
@@ -23,7 +23,7 @@ destinations:
         secret_access_key: SECRET_KEY
 
 sources:
-    test_mysql: # a self-explanatory id
+    test-mysql: # a self-explanatory id
         type: mysqldump
         # container: dockerbackup_test_mysql_1
         compose:
@@ -38,9 +38,9 @@ sources:
         # password: mysql_pass
         databases:
             - test_database
-        destination: local_ftp # id from destinations
+        destination: local-ftp # id from destinations
         name: dockerbackup_test_mysql
-    test_fs:
+    test-fs:
         type: fs
         container: dockerbackup_test_data_1
         # compose:
@@ -53,7 +53,7 @@ sources:
         #     container_number:   1
         volumes:
             - /data
-        destination: local_ftp
+        destination: local-ftp
         name: dockerbackup_test_fs
 
 parameters:
