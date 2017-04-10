@@ -34,6 +34,10 @@ function docker_get {
     eval ${DOCKER_GET}${url_path}
 }
 
+function docker_get_current_container_id {
+    cat /proc/1/cgroup | grep 'docker/' | tail -1 | sed 's/^.*\///' | cut -c 1-12
+}
+
 function docker_get_container_name_from_id {
     local container_id=$1
     docker inspect ${container_id} | underscore extract 0.Name --outfmt text | sed -e 's#^/##'
@@ -107,6 +111,20 @@ function get_config_env_var {
 }
 
 function join_by { local IFS="$1"; shift; echo "$*"; }
+
+function dir_is_mounted_from_host {
+    local searched_dir=$1
+    local container_name=${2:-$(docker_get_current_container_id)}
+    local dir_found=$(docker inspect ${container_name} | \
+                        underscore extract 0.HostConfig.Binds --outfmt text | \
+                        grep ":${searched_dir}:rw")
+    if [ -n "${dir_found}" ]
+    then
+        echo 0
+        return
+    fi
+    echo 1
+}
 
 function shyaml_get_action {
     local key=$1

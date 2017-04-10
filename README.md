@@ -68,6 +68,19 @@ You can force a backup with the `force` command:
         -v /var/run/docker.sock:/var/run/docker.sock \
         akerbis/docker-backup force
 
+## Restore
+
+Restoring a backup is easy: use the `restore [container ...]` command. This will
+restore the last backup to the `/docker-restore` mounted path.
+
+    docker run \
+        -v /host/path/to/config.yml:/etc/docker-backup/docker-backup.yml \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v /host/path/to/restored/content:/docker-restore:rw \
+        akerbis/docker-backup restore test_fs
+
+For mysql backups, the restore action will simply restore the dumped .sql file.
+
 ## How it works
 
 This image uses the docker socket to connect and backup files, depending on the source type of the container to backup. For each source to backup, it will run by itself a *worker* container whom task is to handle the backup itself. The main container keep the backup orchestration.
@@ -86,9 +99,9 @@ Feel free to fork the project and propose Pull Requests!
 
 ## TODO
 
+- Get rid of docker binaries, use socket API
 - Check all parameters validity before starting
 - Check and tighten security
-- Make a restore action
 - [Multi Backend](http://duplicity.nongnu.org/duplicity.1.html#sect18)
 - Encryption
 - Web Interface

@@ -11,13 +11,16 @@ services:
             - ./app:/docker-backup-app:ro
             - ./app/config.yml.dist:/etc/docker-backup/docker-backup.yml:ro
             - ./docker/image_setup/etc/cron.d/docker-backup:/etc/cron.d/docker-backup:ro
+            - ./docker-restore:/docker-restore
             - /var/run/docker.sock:/var/run/docker.sock
         environment:
             - CONFIG_DESTINATIONS_LOCAL_FTP_PASSWORD=test_password
             - CONFIG_SOURCES_TEST_MYSQL_USERNAME=mysql_user
             - CONFIG_SOURCES_TEST_MYSQL_PASSWORD=mysql_pass
+        # command: force
         # command: worker test_mysql
-        command: force
+        # command: restore test_mysql
+        command: restore test_fs test_mysql
         # command: debug
         networks:
             - ftp
@@ -32,8 +35,9 @@ services:
             - MYSQL_DATABASE=test_database
     test_data:
         image: busybox:latest
-        command: tail -f /dev/null
+        command: sh /random.sh
         volumes:
+            - ./docker/test_data/random.sh:/random.sh
             - /data
     ftp_server:
         image: akerbis/ftp:latest

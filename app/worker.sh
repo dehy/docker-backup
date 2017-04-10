@@ -7,6 +7,13 @@ source $(dirname $0)/common.sh
 install_docker
 
 source=$1
+restore=${2:-0}
+
+if [ "$restore" == "restore" -a "$(dir_is_mounted_from_host /docker-restore)" != "0" ]
+then
+    echo "!!! In restore mode but the /docker-restore dir is not mounted from host" >&2
+    exit 1
+fi
 
 type=$(get_source_parameter $source type)
 source_container_id=$(get_container_id_from_config source $source)
@@ -53,6 +60,7 @@ fi
 
 destination=$(get_source_parameter $source destination)
 BACKUP_METHOD=$(get_destination_parameter $destination type)
+BACKUP_METHOD_PARAMS=""
 BACKUP_KEEP_N_FULL=$(get_parameter backup_keep_n_full)
 
 if [ "${BACKUP_METHOD}" == "ftp" ]
@@ -72,12 +80,6 @@ then
     else
         export FTP_PASSWORD=$(get_destination_parameter $destination password "")
     fi
-    for volume_to_backup in "${volumes_to_backup[@]}"
-    do
-        duplicity --full-if-older-than "$(get_parameter backup_full_if_older_than)" \
-            --no-encryption --allow-source-mismatch \
-            "${volume_to_backup}" "${BACKUP_URL}"
-    done
 fi
 
 if [ "${BACKUP_METHOD}" == "s3" ]
@@ -87,14 +89,25 @@ then
     AWS_REGION=$(get_destination_parameter $destination region)
     AWS_BUCKET_NAME=$(get_destination_parameter $destination bucket_name)
     BACKUP_URL="par2+s3://s3.${AWS_REGION}.amazonaws.com/${AWS_BUCKET_NAME}/${destination_directory_name}"
-    for volume_to_backup in "${volumes_to_backup[@]}"
-    do
+
+    method_params="--s3-european-buckets --s3-use-new-style"
+fi
+
+for volume_to_backup in "${volumes_to_backup[@]}"
+do
+    if [ "$restore" == "restore" ];
+    then
+        NOW=$(date +"%Y-%m-%d-%H%M%S")
+        restore_destination="/docker-restore/restore-${NOW}"
+        duplicity --no-encryption "${BACKUP_URL}" "${restore_destination}/${destination_directory_name}"
+        exit 0
+    else
         duplicity --full-if-older-than "$(get_parameter backup_full_if_older_than)" \
             --no-encryption --allow-source-mismatch \
-            --s3-european-buckets --s3-use-new-style \
+            ${BACKUP_METHOD_PARAMS} \
             "${volume_to_backup}" "${BACKUP_URL}"
-    done
-fi
+    fi
+done
 
 duplicity remove-all-but-n-full --force --no-encryption "${BACKUP_KEEP_N_FULL}" "${BACKUP_URL}"
 

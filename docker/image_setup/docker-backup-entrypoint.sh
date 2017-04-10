@@ -38,4 +38,15 @@ if [ "$ACTION" == "worker" ]; then
     exit 0
 fi
 
+if [ "$ACTION" == "restore" ]; then
+    shift
+    while (( "$#" ));
+    do
+        container=$1
+        /bin/bash /docker-backup-app/worker.sh $container restore
+        shift
+    done
+    exit 0
+fi
+
 /usr/sbin/cron -f -L 15
