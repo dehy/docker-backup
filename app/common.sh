@@ -24,7 +24,7 @@ function check_vitals {
 function install_docker {
     docker_engine_version=$(eval $DOCKER_GET/version | underscore select ".Version" --outfmt text | tr '-' '~')
     # Remove commercialy supported extension
-    docker_engine_version=$(echo $docker_engine_version | sed -E 's/-cs[0-9]+$//')
+    docker_engine_version=$(echo $docker_engine_version | sed -E 's/~cs[0-9]+$//')
     local docker_engine_package_version=$(apt-cache madison docker-engine | grep ${docker_engine_version} | awk -F "|" '{ print $2 }' | tr -d " ")
     apt-get install -y --no-install-recommends docker-engine=${docker_engine_package_version}
 }
