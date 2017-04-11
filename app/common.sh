@@ -142,6 +142,9 @@ function shyaml_get_action {
         int)
             echo get-value
             ;;
+        bool)
+            echo get-value
+            ;;
     esac
 
 }

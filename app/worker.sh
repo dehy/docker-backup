@@ -63,6 +63,17 @@ BACKUP_METHOD=$(get_destination_parameter $destination type)
 BACKUP_METHOD_PARAMS=""
 BACKUP_KEEP_N_FULL=$(get_parameter backup_keep_n_full)
 
+par2_prefix=""
+par2_redundancy_opt=""
+PAR2_ENABLED=$(get_parameter par2.enabled false)
+if [ "${PAR2_ENABLED}" == "True" ]
+then
+    par2_prefix="par2+"
+    par2_redundancy_opt="--par2-redundancy $(get_parameter par2.redundancy 10)"
+fi
+
+BACKUP_METHOD_PARAMS="${BACKUP_METHOD_PARAMS} ${par2_redundancy_opt}"
+
 if [ "${BACKUP_METHOD}" == "ftp" ]
 then
     server=$(get_destination_parameter $destination server "")
@@ -73,7 +84,7 @@ then
     port=$(get_destination_parameter $destination port 21)
     username=$(get_destination_parameter $destination username)
     path=$(get_destination_parameter $destination path /)
-    BACKUP_URL="par2+ftp://${username}@${server}:${port}${path}${destination_directory_name}"
+    BACKUP_URL="${par2_prefix}ftp://${username}@${server}:${port}${path}${destination_directory_name}"
     ENV_FTP_PASSWORD=$(get_config_env_var destinations $destination password)
     if [ -n "${ENV_FTP_PASSWORD}" ]; then
         export FTP_PASSWORD=${ENV_FTP_PASSWORD}
@@ -88,9 +99,13 @@ then
     export AWS_SECRET_ACCESS_KEY=$(get_destination_parameter $destination secret_access_key)
     AWS_REGION=$(get_destination_parameter $destination region)
     AWS_BUCKET_NAME=$(get_destination_parameter $destination bucket_name)
-    BACKUP_URL="par2+s3://s3.${AWS_REGION}.amazonaws.com/${AWS_BUCKET_NAME}/${destination_directory_name}"
+    BACKUP_URL="${par2_prefix}s3://s3.${AWS_REGION}.amazonaws.com/${AWS_BUCKET_NAME}/${destination_directory_name}"
 
-    method_params="--s3-european-buckets --s3-use-new-style"
+    BACKUP_METHOD_PARAMS="${BACKUP_METHOD_PARAMS} --s3-european-buckets --s3-use-new-style"
+    if [ "$(get_destination_parameter $destination use_ia False)" == "True" ];
+    then
+        BACKUP_METHOD_PARAMS="${BACKUP_METHOD_PARAMS} --s3-use-ia"
+    fi
 fi
 
 for volume_to_backup in "${volumes_to_backup[@]}"
