@@ -2,7 +2,7 @@
 
 [![](https://images.microbadger.com/badges/image/akerbis/docker-backup.svg)](https://microbadger.com/images/akerbis/docker-backup "Get your own image badge on microbadger.com") [![](https://images.microbadger.com/badges/version/akerbis/docker-backup.svg)](https://microbadger.com/images/akerbis/docker-backup "Get your own version badge on microbadger.com") [![](https://images.microbadger.com/badges/commit/akerbis/docker-backup.svg)](https://microbadger.com/images/akerbis/docker-backup "Get your own commit badge on microbadger.com")
 
-Docker image for backuping data and mysql containers, using [duplicity](http://duplicity.nongnu.org/index.html) at its core.
+Docker image for orchestrating backup of data and mysql containers, using [duplicity](http://duplicity.nongnu.org/index.html) at its core.
 
 ## Warning
 
@@ -113,10 +113,4 @@ Feel free to fork the project and propose Pull Requests!
 
 ## TODO
 
-- Get rid of docker binaries, use socket API
-- Check all parameters validity before starting
-- Check and tighten security
-- [Multi Backend](http://duplicity.nongnu.org/duplicity.1.html#sect18)
-- Encryption
-- Web Interface
-- Docker-Cloud API integration
+See [Issues](https://github.com/akerbis/docker-backup/issues).
