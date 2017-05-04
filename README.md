@@ -14,13 +14,13 @@ This app is currently very very early-stage. Consider using it at your own risks
 
 You need to copy `app/config.yml.dist` to `app/config.yml` and override parameters.
 
-You can defines destinations (backup servers), sources (datas to backup) and some global parameters. Supported destinations are `ftp` and `s3`. Supported sources are `fs` and `mysqldump`.
+You can defines destinations (backup servers), sources (datas to backup) and some global parameters. Supported destinations are `ftp`, `sftp` and `s3`. Supported sources are `fs` and `mysqldump`.
 
 #### Required parameters for destinations
 
-For all destination, define a parameter `type` with a value of `ftp` or `s3` with the following parameters:
+For all destination, define a parameter `type` with a value of `ftp`, `sftp` or `s3` with the following parameters:
 
-##### ftp
+##### ftp / sftp
 - server
 - port
 - username
@@ -97,7 +97,7 @@ For mysql backups, the restore action will simply restore the dumped .sql file.
 
 ## How it works
 
-This image uses the docker socket to connect and backup files, depending on the source type of the container to backup. For each source to backup, it will run by itself a *worker* container whom task is to handle the backup itself. The main container keep the backup orchestration.
+This image uses the docker socket to connect and backup files, depending on the source type of the container to backup. For each source to backup, it will spawn a *worker* container whom task is to handle the backup itself. The main container keep the backup orchestration.
 For example, a `fs` source type will backuped by mounting the source container volumes to the worker backup container and execute the backup from here. The worker backup container is then stopped and removed.
 A `mysqldump` source type will be backuped by executing (`docker exec`) the `mysqldump` command into the source container, redirecting the output to the worker backup container, and execute the backup from here.
 

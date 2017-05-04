@@ -22,6 +22,13 @@ destinations:
         access_key_id: ACCESS_KEY
         secret_access_key: SECRET_KEY
         use_ia: true
+    c14:
+        type: sftp
+        server: myssh.server.com
+        port: 54415
+        username: c14ssh
+        # password: password
+        path: /buffer
 
 sources:
     test-mysql: # a self-explanatory id
@@ -39,7 +46,7 @@ sources:
         # password: mysql_pass
         databases:
             - test_database
-        destination: local-ftp # id from destinations
+        destination: c14 # id from destinations
         name: dockerbackup_test_mysql
     test-fs:
         type: fs
@@ -54,7 +61,7 @@ sources:
         #     container_number:   1
         volumes:
             - /data
-        destination: s3
+        destination: c14
         name: dockerbackup_test_fs
 
 parameters:

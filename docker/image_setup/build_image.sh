@@ -19,17 +19,21 @@ apt-get -y install --no-install-recommends \
     curl \
     nodejs \
     npm \
+    python \
     python-pip \
     python-setuptools \
+    python-pkg-resources \
     git \
     wget \
     lftp \
     par2 \
+    openssh-client \
+    python-dev \
     gcc make g++
 update-alternatives --install /usr/bin/node nodejs /usr/bin/nodejs 100
 npm install -g underscore-cli
 pip install --upgrade pip
-pip install boto shyaml pexpect
+pip install boto shyaml pexpect cryptography paramiko
 
 bash ${SETUP_DIR}/install_duplicity.sh
 
@@ -37,7 +41,7 @@ mv ${SETUP_DIR}/docker-backup-entrypoint.sh /
 cp -v -R ${SETUP_DIR}/etc/* /etc/
 
 apt-get -y purge \
-    python-pip python-setuptools npm \
+    python-dev python-setuptools python-pip npm \
     gcc make g++
 
 apt-get -y autoremove

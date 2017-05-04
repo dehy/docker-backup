@@ -84,13 +84,8 @@ then
     port=$(get_destination_parameter $destination port 21)
     username=$(get_destination_parameter $destination username)
     path=$(get_destination_parameter $destination path /)
-    BACKUP_URL="${par2_prefix}ftp://${username}@${server}:${port}${path}${destination_directory_name}"
-    ENV_FTP_PASSWORD=$(get_config_env_var destinations $destination password)
-    if [ -n "${ENV_FTP_PASSWORD}" ]; then
-        export FTP_PASSWORD=${ENV_FTP_PASSWORD}
-    else
-        export FTP_PASSWORD=$(get_destination_parameter $destination password "")
-    fi
+    BACKUP_URL="${par2_prefix}ftp://${username}@${server}:${port}/${path}/${destination_directory_name}"
+    export FTP_PASSWORD=$(get_destination_parameter $destination password "")
 fi
 
 if [ "${BACKUP_METHOD}" == "s3" ]
@@ -106,6 +101,23 @@ then
     then
         BACKUP_METHOD_PARAMS="${BACKUP_METHOD_PARAMS} --s3-use-ia"
     fi
+fi
+
+if [ "${BACKUP_METHOD}" == "sftp" ]
+then
+    server=$(get_destination_parameter $destination server "")
+    if [ -z "${server}" ]; then
+        server_id=$(get_container_id_from_config destination $destination)
+        server=$(docker_get_container_name_from_id $server_id)
+    fi
+    port=$(get_destination_parameter $destination port 21)
+    username=$(get_destination_parameter $destination username)
+    password=$(get_destination_parameter $destination password)
+    path=$(get_destination_parameter $destination path /)
+    BACKUP_URL="${par2_prefix}sftp://${username}@${server}:${port}/${path}/${destination_directory_name}"
+    export FTP_PASSWORD=$(get_destination_parameter $destination password "")
+    mkdir -p ~/.ssh
+    ssh-keyscan -p ${port} ${server} >> ~/.ssh/known_hosts
 fi
 
 for volume_to_backup in "${volumes_to_backup[@]}"

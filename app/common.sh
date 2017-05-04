@@ -90,6 +90,11 @@ function get_destination_parameter {
     local destination="$1"
     local parameter="$2"
     local default="${3:-}"
+    local ENV_VAR="$(get_config_env_var destinations $destination $parameter)"
+    if [ -n "${ENV_VAR}" ]; then
+        echo ${ENV_VAR}
+        return
+    fi
     local key=destinations.${destination}.${parameter}
     local action=$(shyaml_get_action $key)
     cat ${CONFIG_FILE} | $BIN_SHYAML $action $key "$default"
@@ -105,7 +110,7 @@ function get_source_parameter {
 }
 
 function get_config_env_var {
-    local VAR_PARTS=$(echo $@ | tr '[:lower:]' '[:upper:]' | sed -e 's/[^A-Z_]/_/g')
+    local VAR_PARTS=$(echo $@ | tr '[:lower:]' '[:upper:]' | sed -e 's/[^A-Z0-9_]/_/g')
     VAR_NAME=$(join_by _ CONFIG $VAR_PARTS)
     echo "${!VAR_NAME:-}"
 }
