@@ -78,6 +78,63 @@ function get_container_id_from_config {
     echo ${container_id}
 }
 
+function docker_get_db_value_id {
+    local container_name=$1
+    local varname=$2
+    local default="${3:-}"
+    if docker inspect ${container_name} | underscore extract 0.Config.Env --outfmt text | grep $varname= 2>&1 >/dev/null &&
+           docker inspect ${container_name} | underscore extract 0.Config.Env --outfmt text | grep $varname= | cut -d= -f2- | grep . 2>&1 >/dev/null
+    then
+        echo $(echo $(docker inspect ${container_name} | underscore extract 0.Config.Env --outfmt text | grep $varname= | cut -d= -f2-))
+    else
+        echo $default
+    fi
+}
+
+function docker_get_db_volumes_from_id {
+    docker_get_db_value_id $1 "DB_VOLUMES" "${2:-}"
+}
+
+function docker_get_db_destination_from_id {
+    docker_get_db_value_id $1 "DB_DESTINATION" "${2:-}"
+}
+
+function docker_get_db_destpath_from_id {
+    docker_get_db_value_id $1 "DB_DESTPATH" "${2:-}"
+}
+
+function docker_get_db_backup_precmd_from_id {
+    docker_get_db_value_id $1 "DB_BACKUP_PRECMD" "${2:-}"
+}
+
+function docker_get_db_backup_postcmd_from_id {
+    docker_get_db_value_id $1 "DB_BACKUP_POSTCMD" "${2:-}"
+}
+
+function docker_get_db_restore_precmd_from_id {
+    docker_get_db_value_id $1 "DB_RESTORE_PRECMD" "${2:-}"
+}
+
+function docker_get_db_restore_postcmd_from_id {
+    docker_get_db_value_id $1 "DB_RESTORE_POSTCMD" "${2:-}"
+}
+
+function docker_run_cmd_in_container {
+    local source_container_id=$1
+    local cmd="${2:-}"
+    if [ ! -z "$cmd" ]
+    then
+        if docker exec $source_container_id "$cmd"
+        then
+            echo successfully run precmd_restore=$cmd
+        else
+            echo failed in running precmd_restore=$cmd
+        fi
+    else
+        echo No cmd specified to run
+    fi
+}
+
 function get_parameter {
     local parameter="$1"
     local default="${2:-}"

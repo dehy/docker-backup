@@ -32,9 +32,15 @@ if [ "$ACTION" == "force" ]; then
     exit 0
 fi
 
-if [ "$ACTION" == "worker" ]; then
+if [ "$ACTION" == "worker-config" ]; then
     container=$2
-    /bin/bash /docker-backup-app/worker.sh $container
+    /bin/bash /docker-backup-app/worker-config.sh $container
+    exit 0
+fi
+
+if [ "$ACTION" == "worker-env" ]; then
+    container=$2
+    /bin/bash /docker-backup-app/worker-env.sh $container
     exit 0
 fi
 
