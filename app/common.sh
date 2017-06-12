@@ -78,6 +78,39 @@ function get_container_id_from_config {
     echo ${container_id}
 }
 
+function docker_get_db_value_id {
+    local container_name=$1
+    local varname=$2
+    local default="${3:-}"
+    if docker inspect ${container_name} | underscore extract 0.Config.Env --outfmt text | grep $varname= 2>&1 >/dev/null &&
+           docker inspect ${container_name} | underscore extract 0.Config.Env --outfmt text | grep $varname= | cut -d= -f2 | grep . 2>&1 >/dev/null
+    then
+        docker inspect ${container_name} | underscore extract 0.Config.Env --outfmt text | grep $varname= | cut -d= -f2
+    else
+        echo $default
+    fi
+}
+
+function docker_get_db_volumes_from_id {
+    docker_get_db_value_id $1 "DB_VOLUMES" "${2:-}"
+}
+
+function docker_get_db_destination_from_id {
+    docker_get_db_value_id $1 "DB_DESTINATION" "${2:-}"
+}
+
+function docker_get_db_destpath_from_id {
+    docker_get_db_value_id $1 "DB_DESTPATH" "${2:-}"
+}
+
+function docker_get_db_precmd_from_id {
+    docker_get_db_value_id $1 "DB_PRECMD" "${2:-}"
+}
+
+function docker_get_db_postcmd_from_id {
+    docker_get_db_value_id $1 "DB_POSTCMD" "${2:-}"
+}
+
 function get_parameter {
     local parameter="$1"
     local default="${2:-}"

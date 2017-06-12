@@ -29,7 +29,8 @@ apt-get -y install --no-install-recommends \
     par2 \
     openssh-client \
     python-dev \
-    gcc make g++
+    gcc make g++ \
+    libffi-dev
 update-alternatives --install /usr/bin/node nodejs /usr/bin/nodejs 100
 npm install -g underscore-cli
 pip install --upgrade pip
@@ -53,6 +54,15 @@ for package_version in $docker_engine_packages
 do
     apt-get install -y --no-install-recommends --download-only docker-engine=$package_version
 done
+
+
+function install_docker {
+    docker_engine_version=$(eval $DOCKER_GET/version | underscore select ".Version" --outfmt text | tr '-' '~')
+    # Remove commercialy supported extension
+    docker_engine_version=$(echo $docker_engine_version | sed -E 's/~cs[0-9]+$//')
+    local docker_engine_package_version=$(apt-cache madison docker-engine | grep ${docker_engine_version} | awk -F "|" '{ print $2 }' | tr -d " ")
+    apt-get install -y --no-install-recommends docker-engine=${docker_engine_package_version}
+}
 
 # Do some cleaning
 rm -rf \

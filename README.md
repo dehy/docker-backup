@@ -16,6 +16,17 @@ You need to copy `app/config.yml.dist` to `app/config.yml` and override paramete
 
 You can defines destinations (backup servers), sources (datas to backup) and some global parameters. Supported destinations are `ftp`, `sftp` and `s3`. Supported sources are `fs` and `mysqldump`.
 
+sources can also be specified directly using environment variables of it container.
+       environment:
+          - DB_DESTINATION=local-ftp
+          - DB_DESTPATH=container-name
+          - DB_VOLUMES=/data
+          - DB_PRECMD="mysqldump all > /data/dump.sql"
+          - DB_POSTCMD="echo done"
+
+DB_PRECMD, DB_POSTCMD support left to be added.
+
+
 #### Required parameters for destinations
 
 For all destination, define a parameter `type` with a value of `ftp`, `sftp` or `s3` with the following parameters:
