@@ -9,7 +9,8 @@ services:
         volumes:
             - ./docker/image_setup/docker-backup-entrypoint.sh:/docker-backup-entrypoint.sh:ro
             - ./app:/docker-backup-app:ro
-            - ./app/config.yml.dist:/etc/docker-backup/docker-backup.yml:ro
+            # - ./app/config.yml.dist:/etc/docker-backup/docker-backup.yml:ro
+            - ./app/config.yml:/etc/docker-backup/docker-backup.yml:ro
             - ./docker/image_setup/etc/cron.d/docker-backup:/etc/cron.d/docker-backup:ro
             - ./docker-restore:/docker-restore
             - /var/run/docker.sock:/var/run/docker.sock
@@ -34,12 +35,22 @@ services:
             - MYSQL_USER=mysql_user
             - MYSQL_PASSWORD=mysql_pass
             - MYSQL_DATABASE=test_database
-    test_data:
+    test_data_cnf:
         image: busybox:latest
         command: sh /random.sh
         volumes:
             - ./docker/test_data/random.sh:/random.sh
             - /data
+    test_data_env:
+        image: busybox:latest
+        command: sh /random.sh
+        volumes:
+            - ./docker/test_data/random.sh:/random.sh
+            - /data
+        environment:
+          - DB_DESTINATION=local-ftp
+          # - DB_DESTPATH=
+          - DB_VOLUMES=/data
     ftp_server:
         image: akerbis/ftp:latest
         environment:

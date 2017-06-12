@@ -50,7 +50,7 @@ sources:
         name: dockerbackup_test_mysql
     test-fs:
         type: fs
-        container: dockerbackup_test_data_1
+        container: dockerbackup_test_data_cnf_1
         # compose:
         #     project:            dockerbackup
         #     service:            test_data
@@ -62,7 +62,7 @@ sources:
         volumes:
             - /data
         destination: c14
-        name: dockerbackup_test_fs
+        name: dockerbackup_test_cnf_fs
 
 parameters:
     backup_full_if_older_than: 7D
