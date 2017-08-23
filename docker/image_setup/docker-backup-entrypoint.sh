@@ -49,7 +49,7 @@ if [ "$ACTION" == "restore" ]; then
     while (( "$#" ));
     do
         container=$1
-        /bin/bash /docker-backup-app/worker.sh $container restore
+        /bin/bash /docker-backup-app/worker-config.sh $container restore
         shift
     done
     exit 0
