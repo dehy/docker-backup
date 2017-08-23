@@ -15,17 +15,41 @@ install_docker
 echo _NOTE: install_docker
 
 THIS_CONTAINER_ID="$(cat /proc/self/cgroup | grep 'docker/' | sed 's/^.*\///' | tail -n1)"
-THIS_DOCKER_IMAGE="$(docker inspect ${THIS_CONTAINER_ID} | underscore extract 0.Config.Image --outfmt text)"
+THIS_DOCKER_IMAGE="$(docker inspect ${THIS_CONTAINER_ID} | $BIN_JQ .[0].Config.Image)"
 # TODO find the image tag
 
+destinations=$(cat ${CONFIG_FILE} | $BIN_SHYAML keys destinations)
 
+# TODO Global pre-hook
+# for destination in $destinations
+# do
+#     destination_service=$(get_destination_parameter $destination service '')
+#     if [ -n "${destination_service}" ]; then
+#         echo "(d) Found service ${destination_service}"
+#         service_file="/docker-backup-app/services/${destination_service}.sh"
+#         if [ -r "${service_file}" ]; then
+#             source ${service_file}
+#             echo "(d) Configuring service ${destination_service}"
+#             service.configure "${destination_service}"
+#             echo "(d) Executing ${destination_service} pre-hook instructions"
+#             service.global_pre_backup_hook "${destination_service}"
+#         else
+#             echo "(e) Service configuration file ${service_file} is not readable!"
+#         fi
+#     fi
 
-if cat ${CONFIG_FILE} | $BIN_SHYAML keys sources
+#     unset -f service.configure
+#     unset -f service.global_pre_backup_hook
+#     unset -f service.pre_backup_hook
+#     unset -f service.post_backup_success_hook
+#     unset -f service.post_backup_failure_hook
+#     unset -f service.global_post_backup_hook
+# done
+
+sources=$(cat ${CONFIG_FILE} | $BIN_SHYAML keys sources)
+if [ -n "${sources}" ]
 then
     echo "* Sources found"
-
-    destinations=$(cat ${CONFIG_FILE} | $BIN_SHYAML keys destinations)
-    sources=$(cat ${CONFIG_FILE} | $BIN_SHYAML keys sources)
 
     for source in $sources
     do
@@ -60,20 +84,20 @@ then
         # If the config file is mounted from host or other container, find the way to get it to workers containers
         config_file_volume_opts=""
 
-        config_file_hostpath=$(docker inspect ${THIS_CONTAINER_ID} | underscore extract 0.HostConfig.Binds --outfmt text | grep -E ":${CONFIG_FILE}:" | cut -d":" -f 1)
+        config_file_hostpath=$(docker inspect ${THIS_CONTAINER_ID} | $BIN_JQ .[0].HostConfig.Binds | grep -E ":${CONFIG_FILE}:" | cut -d":" -f 1 | cut -d'"' -f2)
         if [ -n "${config_file_hostpath}" ]; then
             config_file_volume_opts="-v ${config_file_hostpath}:${CONFIG_FILE}:ro"
         fi
         if [ -z "${config_file_hostpath}" ]; then
             # find if mounted from other container
-            mount_points="$(docker inspect ${THIS_CONTAINER_ID} | underscore extract 0.Mounts)"
-            mount_points_count=$(echo "${mount_points}" | underscore process 'data.length')
+            mount_points="$(docker inspect ${THIS_CONTAINER_ID} | $BIN_JQ .[0].Mounts)"
+            mount_points_count=$(echo "${mount_points}" | $BIN_JQ '. | length')
             i="0"
             while [ $i -lt $mount_points_count ];
             do
-                tmp_destination=$(echo "${mount_points}" | underscore extract "$i.Destination" --outfmt text)
+                tmp_destination=$(echo "${mount_points}" | $BIN_JQ ".[$i].Destination")
                 if [ "$tmp_destination" == "$(dirname ${CONFIG_FILE})" ]; then
-                    config_file_hostpath=$(echo "${mount_points}" | underscore extract "$i.Source" --outfmt text);
+                    config_file_hostpath=$(echo "${mount_points}" | $BIN_JQ ".[$i].Source");
                     break
                 fi
                 unset tmp_destination
@@ -149,20 +173,20 @@ do
         # If the config file is mounted from host or other container, find the way to get it to workers containers
         config_file_volume_opts=""
 
-        config_file_hostpath=$(docker inspect ${THIS_CONTAINER_ID} | underscore extract 0.HostConfig.Binds --outfmt text | grep -E ":${CONFIG_FILE}:" | cut -d":" -f 1)
+        config_file_hostpath=$(docker inspect ${THIS_CONTAINER_ID} | $BIN_JQ .[0].HostConfig.Binds | grep -E ":${CONFIG_FILE}:" | cut -d":" -f 1 | cut -d'"' -f2)
         if [ -n "${config_file_hostpath}" ]; then
             config_file_volume_opts="-v ${config_file_hostpath}:${CONFIG_FILE}:ro"
         fi
         if [ -z "${config_file_hostpath}" ]; then
             # find if mounted from other container
-            mount_points="$(docker inspect ${THIS_CONTAINER_ID} | underscore extract 0.Mounts)"
-            mount_points_count=$(echo "${mount_points}" | underscore process 'data.length')
+            mount_points="$(docker inspect ${THIS_CONTAINER_ID} | $BIN_JQ .[0].Mounts)"
+            mount_points_count=$(echo "${mount_points}" | $BIN_JQ '. | length')
             i="0"
             while [ $i -lt $mount_points_count ];
             do
-                tmp_destination=$(echo "${mount_points}" | underscore extract "$i.Destination" --outfmt text)
+                tmp_destination=$(echo "${mount_points}" | $BIN_JQ ".[$i].Destination")
                 if [ "$tmp_destination" == "$(dirname ${CONFIG_FILE})" ]; then
-                    config_file_hostpath=$(echo "${mount_points}" | underscore extract "$i.Source" --outfmt text);
+                    config_file_hostpath=$(echo "${mount_points}" | $BIN_JQ ".[$i].Source");
                     break
                 fi
                 unset tmp_destination

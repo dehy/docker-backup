@@ -5,7 +5,7 @@ set -eu
 source /docker-backup-environment.sh
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-BIN_UNDERSCORE=/usr/local/bin/underscore
+BIN_JQ="/usr/bin/jq -r"
 BIN_SHYAML=/usr/local/bin/shyaml
 
 CONFIG_FILE="/etc/docker-backup/docker-backup.yml"
@@ -21,9 +21,16 @@ function check_vitals {
     echo ""
 }
 
+function is_already_running {
+    if [ -r /var/run/docker-backup ]; then
+        PROCESS_ID="$(cat /var/run/docker-backup)"
+    fi
+    return 0
+}
+
 function install_docker {
-    docker_engine_version=$(eval $DOCKER_GET/version | underscore select ".Version" --outfmt text)
-    docker_api_version=$(eval $DOCKER_GET/version | underscore select ".ApiVersion" --outfmt text)
+    docker_engine_version=$(eval $DOCKER_GET/version | $BIN_JQ ".Version")
+    docker_api_version=$(eval $DOCKER_GET/version | $BIN_JQ ".ApiVersion")
     # Remove commercialy supported extension
     docker_engine_version=$(echo ${docker_engine_version} | sed -E 's/~cs[0-9]+$//')
 
@@ -59,12 +66,12 @@ function docker_get_current_container_id {
 
 function docker_get_container_name_from_id {
     local container_id=$1
-    docker inspect ${container_id} | underscore extract 0.Name --outfmt text | sed -e 's#^/##'
+    docker inspect ${container_id} | $BIN_JQ '.[0].Name' | sed -e 's#^/##'
 }
 
 function docker_get_container_id_from_name {
     local container_name=$1
-    docker inspect ${container_name} | underscore extract 0.Id --outfmt text
+    docker inspect ${container_name} | $BIN_JQ '.[0].Id'
 }
 
 function get_container_id_from_config {
@@ -76,7 +83,7 @@ function get_container_id_from_config {
     local container_id=""
     if [ -n "${config_container}" ]
     then
-        container_id=$(docker inspect ${config_container} | ${BIN_UNDERSCORE} extract 0.Id --outfmt text)
+        container_id=$(docker inspect ${config_container} | ${BIN_JQ} '.[0].Id')
     elif [ -n "${config_compose}" ]
     then
         local config_compose_project=$(get_${property}_parameter $key compose.project "")
@@ -101,10 +108,10 @@ function docker_get_db_value_id {
     local container_name=$1
     local varname=$2
     local default="${3:-}"
-    if docker inspect ${container_name} | underscore extract 0.Config.Env --outfmt text | grep $varname= 2>&1 >/dev/null &&
-           docker inspect ${container_name} | underscore extract 0.Config.Env --outfmt text | grep $varname= | cut -d= -f2- | grep . 2>&1 >/dev/null
+    if docker inspect ${container_name} | $BIN_JQ .[0].Config.Env | grep $varname= 2>&1 >/dev/null &&
+           docker inspect ${container_name} | $BIN_JQ .[0].Config.Env | grep $varname= | cut -d= -f2- | grep . 2>&1 >/dev/null
     then
-        echo $(echo $(docker inspect ${container_name} | underscore extract 0.Config.Env --outfmt text | grep $varname= | cut -d= -f2-))
+        echo $(echo $(docker inspect ${container_name} | $BIN_JQ .[0].Config.Env | grep $varname= | cut -d= -f2- | cut -d'"' -f1))
     else
         echo $default
     fi
@@ -197,7 +204,7 @@ function dir_is_mounted_from_host {
     local searched_dir=$1
     local container_name=${2:-$(docker_get_current_container_id)}
     local dir_found=$(docker inspect ${container_name} | \
-                        underscore extract 0.HostConfig.Binds --outfmt text | \
+                        $BIN_JQ '.[0].HostConfig.Binds' | \
                         grep ":${searched_dir}:rw")
     if [ -n "${dir_found}" ]
     then

@@ -22,8 +22,6 @@ destination_directory_name=$(docker_get_db_destpath_from_id $source_container_id
 
 declare -a volumes_to_backup
 
-
-
 volumes_path=$(docker_get_db_volumes_from_id $source_container_id)
 echo _NOTE: volumes_path=$volumes_path
 # IFS=':' volumes=($volumes_path)
@@ -47,6 +45,7 @@ then
 
 
     BACKUP_METHOD=$(get_destination_parameter $destination type)
+    echo "(d) Backup Method: ${BACKUP_METHOD}"
     BACKUP_METHOD_PARAMS=""
     BACKUP_KEEP_N_FULL=$(get_parameter backup_keep_n_full)
 
@@ -107,12 +106,16 @@ then
         ssh-keyscan -p ${port} ${server} >> ~/.ssh/known_hosts
     fi
 
+    echo "(d) Backup URL: ${BACKUP_URL}"
+
     for volume_to_backup in "${volumes_to_backup[@]}"
     do
         if [ -d "${volume_to_backup}" ]
         then
             if [ "$restore" == "restore" ];
             then
+                echo "(i) I will restore volume ${volume_to_backup} of container ${source_container_name} via ${BACKUP_METHOD} from ${BACKUP_URL}..."
+
                 docker_run_cmd_in_container $source_container_id $(docker_get_db_restore_precmd_from_id $source_container_id)
 
                 NOW=$(date +"%Y-%m-%d-%H%M%S")
@@ -123,6 +126,8 @@ then
 
                 exit 0
             else
+                echo "(i) I will backup volume ${volume_to_backup} of container ${source_container_name} via ${BACKUP_METHOD} to ${BACKUP_URL}..."
+
                 docker_run_cmd_in_container $source_container_id $(docker_get_db_backup_precmd_from_id $source_container_id)
 
                 duplicity --full-if-older-than "$(get_parameter backup_full_if_older_than)" \
@@ -137,6 +142,7 @@ then
         fi
     done
 
+    echo "(i) I will purge all old backups with more than ${BACKUP_KEEP_N_FULL} full backups"
     duplicity remove-all-but-n-full --force --no-encryption "${BACKUP_KEEP_N_FULL}" "${BACKUP_URL}"
 
 else

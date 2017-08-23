@@ -16,14 +16,14 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
         environment:
             - CONFIG_DESTINATIONS_LOCAL_FTP_PASSWORD=test_password
-            - CONFIG_DESTINATIONS_C14_PASSWORD=test_password
+            - CONFIG_DESTINATIONS_C14_PRIVATE_TOKEN=private_token
             - CONFIG_SOURCES_TEST_MYSQL_USERNAME=mysql_user
             - CONFIG_SOURCES_TEST_MYSQL_PASSWORD=mysql_pass
-        command: force
+        # command: force
         # command: worker test-fs
         # command: restore test-mysql
         # command: restore test-fs test-mysql
-        # command: debug
+        command: debug
         networks:
             - ftp
         # volumes_from:

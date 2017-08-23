@@ -28,7 +28,7 @@ then
 fi
 
 if [ "$ACTION" == "force" ]; then
-    /bin/bash /docker-backup-app/run.sh
+    exec /bin/bash /docker-backup-app/run.sh
     exit 0
 fi
 
@@ -40,7 +40,7 @@ fi
 
 if [ "$ACTION" == "worker-env" ]; then
     container=$2
-    /bin/bash /docker-backup-app/worker-env.sh $container
+    exec /bin/bash /docker-backup-app/worker-env.sh $container
     exit 0
 fi
 
@@ -55,4 +55,4 @@ if [ "$ACTION" == "restore" ]; then
     exit 0
 fi
 
-/usr/sbin/cron -f -L 15
+exec /usr/sbin/cron -f -L 15

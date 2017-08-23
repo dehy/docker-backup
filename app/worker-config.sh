@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
 source $(dirname $0)/common.sh
 
@@ -60,6 +60,10 @@ fi
 
 destination=$(get_source_parameter $source destination)
 BACKUP_METHOD=$(get_destination_parameter $destination type)
+BACKUP_SERVICE=""
+if [ -z "${BACKUP_METHOD}" ]; then
+    BACKUP_SERVICE=$(get_destination_parameter $destination service)
+fi
 BACKUP_METHOD_PARAMS=""
 BACKUP_KEEP_N_FULL=$(get_parameter backup_keep_n_full)
 
@@ -120,6 +124,31 @@ then
     ssh-keyscan -p ${port} ${server} >> ~/.ssh/known_hosts
 fi
 
+if [ "${BACKUP_SERVICE}" == "c14" ]
+then
+    source /docker-backup-app/services/c14.sh
+
+    c14_safe_name=$(get_destination_parameter $destination safe_name)
+    c14_parity=$(get_destination_parameter $destination parity intensive)
+    c14_crypto=$(get_destination_parameter $destination crypto aes-256-cbc)
+    c14_platforms=$(get_destination_parameter $destination platform 1)
+
+    c14_archive_name="${source_container_name} - $(date +"%d-%m-%Y %H:%M:%S")"
+    c14_archive_description="Docker Backup of ${source_container_name} volumes at $(date +"%d-%m-%Y %H:%M:%S")"
+
+    service.configure "${destination}"
+
+    archive_name="Docker Backup TEST" # $(date +"%Y%m%d%H%M%S")"
+    archive_description="Automatic Docker Backup of ..."
+    service.pre_backup_hook "$c14_safe_name" "$c14_archive_name" "$c14_archive_description" "$c14_parity" "$c14_crypto" "[\"$c14_platforms\"]"
+
+    export FTP_PASSWORD="${c14_password}"
+    BACKUP_URL="${par2_prefix}sftp://${c14_login}@${c14_server}:${c14_port}//buffer/${destination_directory_name}"
+
+    mkdir -p ~/.ssh
+    ssh-keyscan -p ${c14_port} ${c14_server} >> ~/.ssh/known_hosts
+fi
+
 for volume_to_backup in "${volumes_to_backup[@]}"
 do
     if [ "$restore" == "restore" ];
@@ -137,5 +166,9 @@ do
 done
 
 duplicity remove-all-but-n-full --force --no-encryption "${BACKUP_KEEP_N_FULL}" "${BACKUP_URL}"
+
+if [ "$(type -t service.global_post_backup_hook)" == "function" ]; then
+    service.post_backup_success_hook "success"
+fi
 
 exit 0

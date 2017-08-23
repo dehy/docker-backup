@@ -19,8 +19,7 @@ apt-get update
 apt-get -y install --no-install-recommends \
     cron \
     curl \
-    nodejs \
-    npm \
+    jq \
     python \
     python-pip \
     python-setuptools \
@@ -30,15 +29,13 @@ apt-get -y install --no-install-recommends \
     lftp \
     par2 \
     openssh-client \
-    python-dev \
+    python-dev libssl-dev libffi-dev \
     gcc make g++ \
     libffi-dev \
     iptables \
     libltdl7 \
     libnfnetlink0 \
     libxtables11
-update-alternatives --install /usr/bin/node nodejs /usr/bin/nodejs 100
-npm install -g underscore-cli
 pip install --upgrade pip
 pip install boto shyaml pexpect cryptography paramiko fasteners
 
@@ -48,7 +45,8 @@ mv ${SETUP_DIR}/docker-backup-entrypoint.sh /
 cp -v -R ${SETUP_DIR}/etc/* /etc/
 
 apt-get -y purge \
-    python-dev python-setuptools python-pip npm \
+    python-dev python-setuptools python-pip \
+    libssl-dev libffi-dev \
     gcc make g++
 
 apt-get -y autoremove
@@ -72,4 +70,3 @@ done
 rm -rf \
     /usr/share/man/* \
     /tmp/* \
-    /root/.npm

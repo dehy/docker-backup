@@ -89,7 +89,7 @@ formatted with this rule :
   - Start with `CONFIG_`
   - Concatenate the path from configuration with underscores `_`
   - Make it uppercase
-  - Replace any non-alpha and underscore character with underscore.
+  - Replace any non-alpha and dash character with underscore.
 
 ie. if I want to provides the secret access key of the destination "s3" from the
 `app/config.yml.dist` provided, I simply follow the path `destinations` > `s3` > `secret_access_key`.

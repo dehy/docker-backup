@@ -22,13 +22,20 @@ destinations:
         access_key_id: ACCESS_KEY
         secret_access_key: SECRET_KEY
         use_ia: true
-    c14:
-        type: sftp
+    sftp:
+        service: sftp
         server: myssh.server.com
-        port: 54415
-        username: c14ssh
+        port: 22
+        username: backups
         # password: password
-        path: /buffer
+        path: /backups
+    c14:
+        service: c14
+        token: private_token
+        safe_name: company-backups
+        parity: intensive # [intensive], standard, enterprise
+        crypto: aes-256-cbc # [aes-256-cbc], none
+        platform: 1 # [1] ## 1 = DC2
 
 sources:
     test-mysql: # a self-explanatory id
@@ -46,7 +53,7 @@ sources:
         # password: mysql_pass
         databases:
             - test_database
-        destination: c14 # id from destinations
+        destination: local-ftp # id from destinations
         name: dockerbackup_test_mysql
     test-fs:
         type: fs
