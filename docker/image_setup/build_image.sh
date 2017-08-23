@@ -32,11 +32,15 @@ apt-get -y install --no-install-recommends \
     openssh-client \
     python-dev \
     gcc make g++ \
-    libffi-dev
+    libffi-dev \
+    iptables \
+    libltdl7 \
+    libnfnetlink0 \
+    libxtables11
 update-alternatives --install /usr/bin/node nodejs /usr/bin/nodejs 100
 npm install -g underscore-cli
 pip install --upgrade pip
-pip install boto shyaml pexpect cryptography paramiko
+pip install boto shyaml pexpect cryptography paramiko fasteners
 
 bash ${SETUP_DIR}/install_duplicity.sh
 
