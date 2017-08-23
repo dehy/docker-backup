@@ -22,11 +22,30 @@ function check_vitals {
 }
 
 function install_docker {
-    docker_engine_version=$(eval $DOCKER_GET/version | underscore select ".Version" --outfmt text | tr '-' '~')
+    docker_engine_version=$(eval $DOCKER_GET/version | underscore select ".Version" --outfmt text)
+    docker_api_version=$(eval $DOCKER_GET/version | underscore select ".ApiVersion" --outfmt text)
     # Remove commercialy supported extension
-    docker_engine_version=$(echo $docker_engine_version | sed -E 's/~cs[0-9]+$//')
-    local docker_engine_package_version=$(apt-cache madison docker-engine | grep ${docker_engine_version} | awk -F "|" '{ print $2 }' | tr -d " ")
-    apt-get install -y --no-install-recommends docker-engine=${docker_engine_package_version}
+    docker_engine_version=$(echo ${docker_engine_version} | sed -E 's/~cs[0-9]+$//')
+
+    echo "(i) Docker engine version is ${docker_engine_version}. Installing package..."
+
+    # docker-engine or docker-ce?
+    is_docker_ce=$(echo ${docker_engine_version} | sed -n -e '/-ce/p')
+    local docker_package_name="docker-ce"
+    if [ -z "${is_docker_ce}" ]; then
+        docker_package_name="docker-engine"
+    fi
+    # is from test channel? (release candidates builds)
+    is_release_candidate=$(echo ${docker_engine_version} | sed -n -e '/-rc[0-9]+/p')
+    if [ -z "${is_release_candidate}" ]; then
+        # add test channel to docker repository
+        sed -i -e 's/edge/edge test/g' /etc/apt/sources.list.d/docker-ce.list
+        apt-get -qq update
+    fi
+
+    local docker_package_version=$(echo ${docker_engine_version} | tr '-' '~')
+    # local docker_engine_package_version=$(apt-cache madison docker-engine | grep ${package_version} | awk -F "|" '{ print $2 }' | tr -d " ")
+    apt-get -qq install -y --no-install-recommends ${docker_package_name}=${docker_package_version}*
 }
 
 function docker_get {
