@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux
+set -eu
 
 source /docker-backup-environment.sh
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -11,8 +11,8 @@ BIN_SHYAML=/usr/local/bin/shyaml
 CONFIG_FILE="/etc/docker-backup/docker-backup.yml"
 
 DOCKER_SOCKET="/var/run/docker.sock"
-DOCKER_GET="curl -XGET -H 'Accept: application/json' --unix-socket ${DOCKER_SOCKET} http://localhost"
-DOCKER_POST="curl -XPOST -H 'Accept: application/json|Content-type: application/json' --unix-socket ${DOCKER_SOCKET} http://localhost"
+DOCKER_GET="curl -s -XGET -H 'Accept: application/json' --unix-socket ${DOCKER_SOCKET} http://localhost"
+DOCKER_POST="curl -s -XPOST -H 'Accept: application/json|Content-type: application/json' --unix-socket ${DOCKER_SOCKET} http://localhost"
 
 function check_vitals {
     # TODO: check if config file is present and readable

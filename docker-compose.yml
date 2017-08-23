@@ -61,6 +61,8 @@ services:
             - "65000-65100:65000-65100"
         networks:
             - ftp
+        volumes:
+            - ./ftp-data:/data
 networks:
     ftp:
         driver: bridge

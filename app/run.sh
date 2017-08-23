@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux
+set -eu
 
 source $(dirname $0)/common.sh
 
@@ -22,11 +22,15 @@ THIS_DOCKER_IMAGE="$(docker inspect ${THIS_CONTAINER_ID} | underscore extract 0.
 
 if cat ${CONFIG_FILE} | $BIN_SHYAML keys sources
 then
+    echo "* Sources found"
+
     destinations=$(cat ${CONFIG_FILE} | $BIN_SHYAML keys destinations)
     sources=$(cat ${CONFIG_FILE} | $BIN_SHYAML keys sources)
 
     for source in $sources
     do
+        echo "* Working on source ${source}"
+
         type=$(get_source_parameter $source type)
         # container, compose or docker-cloud ?
         source_container_id=$(get_container_id_from_config source $source)
@@ -91,7 +95,7 @@ then
             environment_opts="${environment_opts} -e ${config_var}"
         done
 
-        echo "Launching Worker for source $source"
+        echo "(i) Launching Worker for source $source"
         eval docker run --rm --volumes-from ${source_container_id} \
              --name docker-backup-worker-${source_container_name} \
              ${environment_opts} \
@@ -103,7 +107,7 @@ then
 
 fi # if cat ${CONFIG_FILE} | $BIN_SHYAML keys sources
 
-echo _NOTE: INSTNACE
+echo _NOTE: INSTANCE
 docker ps -q
 
 

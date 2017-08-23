@@ -1,3 +1,4 @@
 .git
 app/config.yml
 docker-restore
+ftp-data

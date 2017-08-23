@@ -1,5 +1,6 @@
 app/config.yml
 docker-restore/*
+ftp-data/*
 
 # Created by https://www.gitignore.io/api/osx
 
